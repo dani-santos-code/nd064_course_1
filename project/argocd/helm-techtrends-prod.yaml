@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: techtrends-prod
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/dani-santos-code/nd064_course_1
+    targetRevision: HEAD
+    path: project/helm
+    helm:
+      valueFiles:
+      - values-prod.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
