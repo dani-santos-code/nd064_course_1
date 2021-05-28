@@ -14,9 +14,6 @@ image:
 
 replicaCount: 1
 
-namespace:
-  name: staging
-
 resources:
   requests:
     cpu: 250m
@@ -26,7 +23,7 @@ resources:
     memory: 128Mi
 
 ports:
-  - containerPort: 3111
+    containerPort: 3111
     protocol: TCP
 readinessProbe:
   httpGet:
