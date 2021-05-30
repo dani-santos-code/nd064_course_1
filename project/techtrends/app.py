@@ -4,18 +4,23 @@ from flask import Flask, jsonify, json, render_template, request, url_for, redir
 from werkzeug.exceptions import abort
 import logging
 import datetime
+
+COUNT = 0
+
+
+def increment_hits_counter():
+    global COUNT
+    COUNT = COUNT + 1
+
 # Function to get a database connection.
 # This function connects to database with the name `database.db`
-
-
 def get_db_connection():
+    increment_hits_counter()
     connection = sqlite3.connect('database.db')
     connection.row_factory = sqlite3.Row
     return connection
 
 # Function to get a post using its ID
-
-
 def get_post(post_id):
     connection = get_db_connection()
     post = connection.execute('SELECT * FROM posts WHERE id = ?',
@@ -27,26 +32,6 @@ def get_post(post_id):
 # Define the Flask application
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your secret key'
-
-
-# Define the main route of the web application
-
-def hits_count():
-    connection = get_db_connection()
-    total = len(connection.execute('SELECT * FROM posts').fetchall())
-    totalToString = str(total+1)
-    ts = datetime.datetime.now().timestamp()
-    connection.execute('INSERT INTO connections (created, total) VALUES (?, ?)',
-                       (ts, totalToString))
-    connection.commit()
-    connection.close()
-
-
-def get_total_count():
-    connection = get_db_connection()
-    total = connection.execute('SELECT * FROM connections').fetchall()
-    connection.close()
-    return len(total)
 
 
 @ app.route('/')
@@ -73,12 +58,11 @@ def healthcheck():
 def metrics():
     # Total amount of posts in the database
     connection = get_db_connection()
-    count = connection.execute('SELECT * FROM posts').fetchall()
+    postCount = connection.execute('SELECT * FROM posts').fetchall()
     connection.close()
-    counter = get_total_count()
     response = app.response_class(
         response=json.dumps(
-            {"db_connection_count": counter, "post_count": str(len(count))}),
+            {"db_connection_count": COUNT, "post_count": str(len(postCount))}),
         status=200,
         mimetype='application/json'
     )
@@ -87,8 +71,6 @@ def metrics():
 
 # Define how each individual article is rendered
 # If the post ID is not found a 404 page is shown
-
-
 @ app.route('/<int:post_id>')
 def post(post_id):
     post = get_post(post_id)
@@ -97,23 +79,19 @@ def post(post_id):
         app.logger.info('No article could be found')
         return render_template('404.html'), 404
     else:
-        hits_count()
+        # hits_count()
         postTitle = tuple(post)[2]
         app.logger.info('Article \"%s" retrieved!', postTitle)
 
         return render_template('post.html', post=post)
 
 # Define the About Us page
-
-
 @ app.route('/about')
 def about():
     app.logger.info('About page successfully retrieved!')
     return render_template('about.html')
 
 # Define the post creation functionality
-
-
 @ app.route('/create', methods=('GET', 'POST'))
 def create():
     if request.method == 'POST':
