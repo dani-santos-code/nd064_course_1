@@ -3,7 +3,6 @@ import sqlite3
 from flask import Flask, jsonify, json, render_template, request, url_for, redirect, flash
 from werkzeug.exceptions import abort
 import logging
-import datetime
 
 COUNT = 0
 
@@ -76,10 +75,9 @@ def post(post_id):
     post = get_post(post_id)
 
     if post is None:
-        app.logger.info('No article could be found')
+        app.logger.error('No article could be found')
         return render_template('404.html'), 404
     else:
-        # hits_count()
         postTitle = tuple(post)[2]
         app.logger.info('Article \"%s" retrieved!', postTitle)
 
@@ -113,6 +111,10 @@ def create():
 
     return render_template('create.html')
 
+@app.errorhandler(404)
+def page_not_found(e):
+    app.logger.error('Page could not be found')
+    return 'This page does not exist', 404
 
 # start the application on port 3111
 if __name__ == "__main__":
