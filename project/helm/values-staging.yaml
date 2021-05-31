@@ -6,9 +6,6 @@ service:
 
 replicaCount: 3
 
-namespace:
-  name: staging
-
 resources:
   requests:
     cpu: 300m

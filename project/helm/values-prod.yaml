@@ -9,9 +9,6 @@ replicaCount: 5
 image:
   pullPolicy: Always
 
-namespace:
-  name: staging
-
 resources:
   requests:
     cpu: 350m
